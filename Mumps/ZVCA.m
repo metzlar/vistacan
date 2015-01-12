@@ -19,7 +19,7 @@ CREATEVISITWNOTE(PRV,DFN,DIA,CONTENT) ;
 CREATEVISIT(DIA,DFN,PRV) ; create a visit and return its timestamp
         S VDT=""
         D DT^ORWU(.VDT,"NOW")
-				; create some required parameters
+	; create some required parameters
         S NIEN="",VLOC="11",VSTR="11;"_VDT_";I",SUPPRESS="0"
         ; create a visit with diagnose DIA 
         S DIATEXT="Shoulder Injury (ICD-9-CM 912.8)"
