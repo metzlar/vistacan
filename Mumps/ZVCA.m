@@ -1,7 +1,23 @@
 ZVCA    ; VistACan mumps routines 
         ; author: Ivan Metzlar <metzlar@gmail.com>
         ;
-CREATEVISITWNOTE(NOTEIEN,PRV,DFN,DIA,CONTENT) ;
+NOTETEMPLATES(RESULT) ; List all note templates
+        ; RESULT (reference) a result parameter to hold all document 
+        ; definition names pointing to its ien
+				N NAME,IEN S NAME="",IEN=""
+        M RESULT=^TIU(8925.1,"B")
+				F  S NAME=$O(RESULT(NAME)) Q:NAME=""  D
+        . S IEN=$O(RESULT(NAME,0))	
+				. S RESULT(NAME)=IEN
+				. K RESULT(NAME,IEN)
+        Q
+CREATEVISITWNOTE(NOTEIEN,PRV,DFN,DIA,CONTENT,TITLE) ; create a visit with a note
+        ; NOTEIEN - return parameter (the ien to the note created)
+        ; PRV - ien of new person responsible
+        ; DFN - patient IEN
+        ; DIA - icd code (doesnt work at this moment)
+        ; CONTENT - content of the note (text)
+        ; TITLE - ien for the document definition (template) to use
         N DUZ,VDT
         D DT^DICRW
         S DUZ=PRV
@@ -10,8 +26,8 @@ CREATEVISITWNOTE(NOTEIEN,PRV,DFN,DIA,CONTENT) ;
         ; create a general visit (1467) note for patient w/DFN 
         ; at location 11 (DR OFFICE)
         N NIEN S NIEN=""
-				N TITLE,VLOC,VSIT,VSTR,SUPPRESS,NOASF,TIUX,TIUY
-        S TITLE="1467",VLOC="11",VSIT="",VSTR="11;"_VDT_";I",SUPPRESS="0",NOASF="1"
+				N VLOC,VSIT,VSTR,SUPPRESS,NOASF,TIUX,TIUY
+        S VLOC="11",VSIT="",VSTR="11;"_VDT_";I",SUPPRESS="0",NOASF="1"
         D MAKE^TIUSRVP(.NIEN,DFN,TITLE,VDT,VLOC,VSIT,.TIUX,VSTR,SUPPRESS,NOASF)  
         S TIUX("TEXT",1,0)=CONTENT
 	      S TIUX("POV")=DIA
@@ -38,3 +54,4 @@ CREATEVISIT(DFN,PRV,IORA) ; create a visit and return its timestamp
 				S PCELIST(7)="POV+"_U_DIA_U_U_DIATEXT_U_"1"_U_PRV_U_"0"_U_U_U_"1"
         D SAVE^ORWPCE(.OK,.PCELIST,NIEN,VLOC)
         Q VDT
+ 
