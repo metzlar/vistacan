@@ -1,17 +1,26 @@
 ZVCA    ; VistACan mumps routines 
         ; author: Ivan Metzlar <metzlar@gmail.com>
         ;
+LOCATIONS(RESULT) ; List all hospital locations (File no. 44)
+        ; RESULT (reference) a result parameter to hold all 
+        ; locations pointing to their ien
+				M RESULT=^SC("B")
+				D B2MAP(.RESULT)
+				Q
 NOTETEMPLATES(RESULT) ; List all note templates
         ; RESULT (reference) a result parameter to hold all document 
         ; definition names pointing to its ien
-				N NAME,IEN S NAME="",IEN=""
         M RESULT=^TIU(8925.1,"B")
-				F  S NAME=$O(RESULT(NAME)) Q:NAME=""  D
-        . S IEN=$O(RESULT(NAME,0))	
-				. S RESULT(NAME)=IEN
-				. K RESULT(NAME,IEN)
+				D B2MAP(.RESULT)
         Q
-CREATEVISITWNOTE(NOTEIEN,PRV,DFN,DIA,CONTENT,TITLE) ; create a visit with a note
+B2MAP(IO) ; Turn an index to a hash map
+        N KEY,VAL S KEY="",VAL=""
+        F  S KEY=$O(IO(KEY)) Q:KEY=""  D
+        . S VAL=$O(IO(KEY,0))	
+				. S IO(KEY)=VAL
+				. K IO(KEY,VAL)
+        Q
+CREATEVISITWNOTE(NOTEIEN,PRV,DFN,DIA,CONTENT,TITLE,VLOC) ; create a visit with a note
         ; NOTEIEN - return parameter (the ien to the note created)
         ; PRV - ien of new person responsible
         ; DFN - patient IEN
@@ -22,12 +31,12 @@ CREATEVISITWNOTE(NOTEIEN,PRV,DFN,DIA,CONTENT,TITLE) ; create a visit with a note
         D DT^DICRW
         S DUZ=PRV
 				; create the visit
-				S VDT=$$CREATEVISIT(DFN,PRV,"A")
-        ; create a general visit (1467) note for patient w/DFN 
-        ; at location 11 (DR OFFICE)
+				S VDT=$$CREATEVISIT(DFN,PRV,"A",VLOC)
+        ; create a note w/TITLE for patient w/DFN 
+        ; at location VLOC
         N NIEN S NIEN=""
-				N VLOC,VSIT,VSTR,SUPPRESS,NOASF,TIUX,TIUY
-        S VLOC="11",VSIT="",VSTR="11;"_VDT_";I",SUPPRESS="0",NOASF="1"
+				N VSIT,VSTR,SUPPRESS,NOASF,TIUX,TIUY
+        S VSIT="",VSTR="11;"_VDT_";I",SUPPRESS="0",NOASF="1"
         D MAKE^TIUSRVP(.NIEN,DFN,TITLE,VDT,VLOC,VSIT,.TIUX,VSTR,SUPPRESS,NOASF)  
         S TIUX("TEXT",1,0)=CONTENT
 	      S TIUX("POV")=DIA
@@ -36,12 +45,12 @@ CREATEVISITWNOTE(NOTEIEN,PRV,DFN,DIA,CONTENT,TITLE) ; create a visit with a note
 				D SETTEXT^TIUSRVPT(.TIUY,NIEN,.TIUX,SUPPRESS)
         M NOTEIEN=NIEN
         Q
-CREATEVISIT(DFN,PRV,IORA) ; create a visit and return its timestamp
+CREATEVISIT(DFN,PRV,IORA,VLOC) ; create a visit and return its timestamp
         N VDT S VDT=""
         D DT^ORWU(.VDT,"NOW")
 				; create some required parameters
-        N OK,NIEN,VLOC,VSTR,SUPPRESS,PCELIST
-        S NIEN="",VLOC="11",VSTR="11;"_VDT_";"_IORA,SUPPRESS="0"
+        N OK,NIEN,VSTR,SUPPRESS,PCELIST
+        S NIEN="",VSTR=VLOC_";"_VDT_";"_IORA,SUPPRESS="0"
         ; create a visit with diagnose DIA 
         S DIATEXT="Shoulder Injury (ICD-9-CM 912.8)"
         S OK=""
