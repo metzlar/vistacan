@@ -24,6 +24,14 @@ B2MAP(IO) ; Turn an index to a hash map
         . S IO(KEY)=VAL
         . K IO(KEY,VAL)
         Q
+PATIENTCNT(RESULT) ; Count all patients
+        N HASH,CNT,X
+        S CNT=0,X=""
+        M HASH=^DPT("B") ; get the B index of all patients
+        D B2MAP(.HASH) ; Turn the list into a hash map
+        F  S X=$O(HASH(X)) Q:X=""  S CNT=CNT+1
+        S RESULT=CNT
+        Q
 CREATEVISITWNOTE(NOTEIEN,PRV,DFN,DIA,CONTENT,TITLE,VLOC) ; create a visit with a note
         ; NOTEIEN - return parameter (the ien to the note created)
         ; PRV - ien of new person responsible
